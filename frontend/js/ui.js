@@ -407,8 +407,72 @@ function showDetailModal(item, type) {
                     <span class="modal-info-value">${item.uploader_name}</span>
                 </div>
                 ` : ''}
+                <div class="modal-info-item">
+                    <span class="modal-info-label">Slack Post:</span>
+                    <button class="btn btn-sm btn-outline-primary copy-permalink-btn" 
+                            data-channel-id="${item.channel_id}" 
+                            data-message-ts="${item.timestamp}"
+                            title="Copy Slack post URL">
+                        <span class="copy-icon">📋</span> Copy URL
+                    </button>
+                </div>
             </div>
         `;
+        
+        // Add copy functionality
+        const copyBtn = modalBody.querySelector('.copy-permalink-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', async () => {
+                let channelId = copyBtn.dataset.channelId;
+                const messageTs = copyBtn.dataset.messageTs;
+                
+                // Fallback: if channel_id is missing, try to get it from the current filter
+                if (!channelId || channelId.trim() === '') {
+                    const selectedChannelId = document.getElementById('selectedChannelId');
+                    if (selectedChannelId && selectedChannelId.value) {
+                        channelId = selectedChannelId.value;
+                    } else {
+                        copyBtn.innerHTML = '<span class="copy-icon">✗</span> No Channel';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<span class="copy-icon">📋</span> Copy URL';
+                        }, 2000);
+                        return;
+                    }
+                }
+                
+                if (!messageTs || messageTs.trim() === '') {
+                    copyBtn.innerHTML = '<span class="copy-icon">✗</span> No Timestamp';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<span class="copy-icon">📋</span> Copy URL';
+                    }, 2000);
+                    return;
+                }
+                
+                try {
+                    const permalink = await getPermalink(channelId, messageTs);
+                    if (permalink) {
+                        await navigator.clipboard.writeText(permalink);
+                        copyBtn.innerHTML = '<span class="copy-icon">✓</span> Copied!';
+                        copyBtn.classList.add('btn-success');
+                        copyBtn.classList.remove('btn-outline-primary');
+                        
+                        // Reset after 2 seconds
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<span class="copy-icon">📋</span> Copy URL';
+                            copyBtn.classList.remove('btn-success');
+                            copyBtn.classList.add('btn-outline-primary');
+                        }, 2000);
+                    }
+                } catch (error) {
+                    console.error('Failed to copy permalink:', error);
+                    const errorMsg = error.message || 'Error';
+                    copyBtn.innerHTML = `<span class="copy-icon">✗</span> ${errorMsg}`;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<span class="copy-icon">📋</span> Copy URL';
+                    }, 3000);
+                }
+            });
+        }
     } else {
         modalTitle.textContent = `Message #${item.rank || 'N/A'}`;
         

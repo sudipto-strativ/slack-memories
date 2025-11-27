@@ -141,6 +141,45 @@ async function healthCheck() {
 }
 
 /**
+ * Verify secret key
+ * @param {string} secretKey - Secret key to verify
+ * @returns {Promise<Object>} Verification result
+ */
+async function verifySecretKey(secretKey) {
+    try {
+        const response = await apiRequest(`${API_BASE_URL}/auth/verify`, {
+            method: 'POST',
+            body: JSON.stringify({ secret_key: secretKey })
+        });
+        return response;
+    } catch (error) {
+        console.error('Error verifying secret key:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get Slack permalink for a message
+ * @param {string} channelId - Slack channel ID
+ * @param {string} messageTs - Message timestamp
+ * @returns {Promise<string>} Permalink URL
+ */
+async function getPermalink(channelId, messageTs) {
+    try {
+        const queryParams = new URLSearchParams({
+            channel_id: channelId,
+            message_ts: messageTs
+        });
+        
+        const response = await apiRequest(`${API_BASE_URL}/permalink?${queryParams}`);
+        return response.permalink || '';
+    } catch (error) {
+        console.error('Error fetching permalink:', error);
+        throw error;
+    }
+}
+
+/**
  * Get proxy URL for Slack image
  * @param {string} imageUrl - Original Slack image URL
  * @returns {string} Proxy URL

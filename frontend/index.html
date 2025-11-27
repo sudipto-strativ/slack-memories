@@ -17,6 +17,49 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Secret Key Cover Screen -->
+    <div id="secretCover" class="secret-cover">
+        <div class="secret-container">
+            <div class="secret-header">
+                <h1 class="secret-title">🔐 Secret Required</h1>
+                <p class="secret-subtitle">You need the secret key to access Slack Memories</p>
+            </div>
+            
+            <div class="secret-form-container">
+                <form id="secretForm" class="secret-form">
+                    <div class="secret-input-wrapper">
+                        <input 
+                            type="password" 
+                            id="secretKeyInput" 
+                            class="secret-input" 
+                            placeholder="Enter secret key..."
+                            autocomplete="off"
+                            spellcheck="false"
+                            required
+                        >
+                    </div>
+                    
+                    <button type="submit" class="secret-submit-btn" id="secretSubmitBtn">
+                        <span class="btn-text">Unlock</span>
+                        <span class="spinner-border spinner-border-sm d-none" id="secretSpinner" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
+                
+                <div id="secretError" class="secret-error d-none">
+                    <span class="error-icon">❌</span>
+                    <span class="error-text">Invalid secret key. Access denied.</span>
+                </div>
+                
+                <div id="secretSuccess" class="secret-success d-none">
+                    <span class="success-icon">✅</span>
+                    <span class="success-text">Access granted! Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (hidden until authenticated) -->
+    <div id="mainContent" class="d-none">
     <!-- Header Section -->
     <header class="trophy-header">
         <div class="container">
@@ -154,9 +197,12 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     
     <!-- Custom JavaScript -->
+    </div> <!-- End of mainContent -->
+    
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 </html>
 

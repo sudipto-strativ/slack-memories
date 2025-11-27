@@ -818,3 +818,247 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--bronze);
 }
 
+/* Copy Permalink Button */
+.copy-permalink-btn {
+    font-family: 'Righteous', cursive;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    background: transparent;
+}
+
+.copy-permalink-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+    background: rgba(78, 205, 196, 0.1);
+}
+
+.copy-permalink-btn.btn-success {
+    background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+    border: none;
+    color: white;
+}
+
+.copy-icon {
+    font-size: 1rem;
+}
+
+/* Hide main content by default (shown after authentication) */
+#mainContent.d-none {
+    display: none !important;
+}
+
+/* Secret Cover Screen */
+.secret-cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 50%, var(--bg-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 2rem;
+}
+
+.secret-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 3rem;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 105, 180, 0.3);
+    animation: secretPulse 3s ease-in-out infinite;
+}
+
+@keyframes secretPulse {
+    0%, 100% {
+        border-color: rgba(255, 105, 180, 0.3);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 0 1px rgba(255, 255, 255, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        border-color: rgba(255, 105, 180, 0.6);
+        box-shadow: 0 20px 60px rgba(255, 105, 180, 0.3),
+                    0 0 0 1px rgba(255, 255, 255, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+}
+
+.secret-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.secret-title {
+    font-family: 'Bungee', cursive;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.2));
+}
+
+.secret-subtitle {
+    font-family: 'Righteous', cursive;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.secret-form-container {
+    width: 100%;
+}
+
+.secret-form {
+    margin-bottom: 1.5rem;
+}
+
+.secret-input-wrapper {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.secret-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-family: 'Righteous', cursive;
+    font-size: 1.1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 105, 180, 0.4);
+    border-radius: 12px;
+    color: var(--text-light);
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.secret-input:focus {
+    border-color: var(--primary-pink);
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.4);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.secret-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.secret-submit-btn {
+    width: 100%;
+    padding: 1rem 2rem;
+    font-family: 'Bungee', cursive;
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-purple) 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+}
+
+.secret-submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.6);
+}
+
+.secret-submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.secret-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.secret-error,
+.secret-success {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    font-family: 'Righteous', cursive;
+    font-size: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.secret-error {
+    background: rgba(255, 107, 157, 0.2);
+    border: 2px solid var(--primary-pink);
+    color: #ff6b9d;
+}
+
+.secret-success {
+    background: rgba(78, 205, 196, 0.2);
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+}
+
+.error-icon,
+.success-icon {
+    font-size: 1.5rem;
+}
+
+.error-text,
+.success-text {
+    font-weight: 500;
+}
+
+/* Responsive Secret Cover */
+@media (max-width: 768px) {
+    .secret-cover {
+        padding: 1rem;
+    }
+    
+    .secret-container {
+        padding: 2rem 1.5rem;
+    }
+    
+    .secret-title {
+        font-size: 2rem;
+    }
+    
+    .secret-subtitle {
+        font-size: 1rem;
+    }
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+

@@ -136,6 +136,7 @@ class SlackClient:
     def extract_photos(
         self,
         messages: List[Dict],
+        channel_id: str = None,
         unique_reactions: bool = False,
         debug: bool = False
     ) -> List[Photo]:
@@ -267,10 +268,13 @@ class SlackClient:
                 except SlackApiError:
                     pass  # Skip if user lookup fails
             
+            # Use channel_id from parameter, fallback to message channel field
+            photo_channel_id = channel_id or msg.get("channel", "")
+            
             photo = Photo(
                 id=msg["ts"],
                 url=file_url,
-                channel_id=msg.get("channel", ""),
+                channel_id=photo_channel_id,
                 timestamp=msg["ts"],
                 uploader_name=uploader_name,
                 emoji_reactions=emoji_reactions,

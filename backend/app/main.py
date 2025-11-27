@@ -1,5 +1,6 @@
 """FastAPI application for Slack Trophy backend."""
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 import httpx
@@ -43,6 +44,33 @@ app.add_middleware(
 async def health_check():
     """Health check endpoint."""
     return HealthResponse(status="ok")
+
+
+class SecretKeyRequest(BaseModel):
+    secret_key: str
+
+
+@app.post("/auth/verify")
+async def verify_secret_key(request: SecretKeyRequest):
+    """Verify the secret key for authentication.
+    
+    Args:
+        request: Request body with secret_key
+    
+    Returns:
+        Success status if key is correct
+    """
+    if not settings.SECRET_KEY:
+        # If no secret key is set, allow access (for development)
+        return {"success": True, "message": "Access granted"}
+    
+    if request.secret_key == settings.SECRET_KEY:
+        return {"success": True, "message": "Access granted"}
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid secret key"
+        )
 
 
 @app.get("/channels", response_model=ChannelsResponse)
@@ -123,7 +151,7 @@ async def get_photos(
             )
         else:
             # Extract photos from messages (first time)
-            photos = slack_client.extract_photos(messages, unique_reactions, debug=debug)
+            photos = slack_client.extract_photos(messages, channel_id=channel_id, unique_reactions=unique_reactions, debug=debug)
             # Cache results (photos metadata, reactions will be refreshed next time)
             cache.set(cache_key, photos, ttl=settings.CACHE_TTL)
         
@@ -317,6 +345,66 @@ async def debug_messages(
         raise HTTPException(
             status_code=500,
             detail=f"Debug error: {str(e)}"
+        )
+
+
+@app.get("/permalink")
+async def get_permalink(
+    channel_id: str = Query(..., description="Slack channel ID"),
+    message_ts: str = Query(..., description="Message timestamp")
+):
+    """Get Slack permalink for a message.
+    
+    Args:
+        channel_id: Slack channel ID
+        message_ts: Message timestamp
+    
+    Returns:
+        Permalink URL for the message
+    """
+    try:
+        # Validate inputs
+        if not channel_id or channel_id.strip() == "":
+            raise HTTPException(
+                status_code=400,
+                detail="Channel ID is required"
+            )
+        
+        if not message_ts or message_ts.strip() == "":
+            raise HTTPException(
+                status_code=400,
+                detail="Message timestamp is required"
+            )
+        
+        # Get permalink using Slack API
+        response = slack_client.client.chat_getPermalink(
+            channel=channel_id,
+            message_ts=message_ts
+        )
+        
+        permalink = response.get("permalink", "")
+        if not permalink:
+            raise HTTPException(
+                status_code=404,
+                detail="Permalink not found"
+            )
+        
+        return {"permalink": permalink}
+    
+    except SlackApiError as e:
+        error_detail = str(e)
+        if hasattr(e, 'response') and e.response:
+            error_detail = e.response.get('error', error_detail)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get permalink: {error_detail}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
         )
 
 

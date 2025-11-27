@@ -26,6 +26,9 @@ class Settings:
     # Date Range Validation
     MAX_DATE_RANGE_DAYS: int = 365  # Maximum 1 year range to prevent DoS
     
+    # Authentication
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    
     @classmethod
     def validate(cls) -> None:
         """Validate that required environment variables are set."""
