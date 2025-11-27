@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slack Memories</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Fun Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Righteous&family=Bungee&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="trophy-header">
+        <div class="container">
+            <div class="text-center py-5">
+                <h1 class="display-3 mb-2">
+                    <span class="trophy-icon">🏆</span> Slack Memories
+                </h1>
+                <p class="lead text-muted">Celebrate Your Most Loved Moments</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filter Panel -->
+    <section class="filter-panel py-4 bg-light">
+        <div class="container">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="channelSearch" class="form-label">Channel</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="channelSearch" placeholder="Search channels..." autocomplete="off">
+                        <div id="channelDropdown" class="channel-dropdown d-none">
+                            <!-- Channel options will be inserted here -->
+                        </div>
+                        <input type="hidden" id="selectedChannelId" value="">
+                    </div>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate">
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate">
+                </div>
+                
+                <div class="col-md-5">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" id="uniqueReactions">
+                        <label class="form-check-label" for="uniqueReactions">
+                            Unique Reactions Only
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <button type="button" class="btn btn-primary btn-lg" id="applyFilters">
+                        <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status" aria-hidden="true"></span>
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section py-5">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loadingState" class="d-none">
+                <div class="row" id="skeletonCards">
+                    <!-- Skeleton cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="d-none text-center py-5">
+                <div class="empty-state-icon mb-3">📭</div>
+                <h3>No Results Found</h3>
+                <p class="text-muted">Try adjusting your filters or selecting a different date range.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="d-none text-center py-5">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Oops! Something went wrong</h4>
+                    <p id="errorMessage"></p>
+                    <button type="button" class="btn btn-danger" id="retryButton">Retry</button>
+                </div>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultsContainer" class="d-none">
+                <!-- Podium View for Top 3 -->
+                <div id="podiumView" class="podium-container mb-5">
+                    <!-- Top 3 items will be rendered here -->
+                </div>
+
+                <!-- Regular Grid View -->
+                <div class="row g-4" id="resultsGrid">
+                    <!-- Results will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Photo/Message Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modal content will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Slack Memories</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                <!-- Toast message will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
