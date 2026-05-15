@@ -35,7 +35,7 @@ class SlackClient:
         channels = []
         
         # Keywords to include - only channels containing these will be shown
-        allowed_keywords = ["general", "privatekotha", "internal-development"]
+        allowed_keywords = ["general", "privatekotha", "internal-development", "life-at-strativ"]
         
         def should_include_channel(channel_name: str) -> bool:
             """Check if channel should be included (contains one of the allowed keywords)."""
@@ -237,6 +237,18 @@ class SlackClient:
                 if debug:
                     print(f"DEBUG: Message {msg.get('ts')} media type is unknown. mimetype: {media_file.get('mimetype')}, filetype: {media_file.get('filetype')}")
                 continue
+
+            # For videos, grab Slack-generated thumbnail; for images use the file URL itself
+            if media_type == "video":
+                thumbnail_url = (
+                    media_file.get("thumb_video") or
+                    media_file.get("thumb_480") or
+                    media_file.get("thumb_360") or
+                    media_file.get("thumb_720") or
+                    file_url
+                )
+            else:
+                thumbnail_url = file_url
             
             # Extract reactions
             emoji_reactions = self._count_reactions(
@@ -259,25 +271,37 @@ class SlackClient:
                     print(f"DEBUG: Skipping photo {msg.get('ts')} with 0 reactions")
                 continue
             
-            # Get uploader name
+            # Get uploader info
+            uploader_id = msg.get("user")
             uploader_name = None
-            if msg.get("user"):
+            uploader_full_name = None
+            uploader_email = None
+            uploader_profile_photo = None
+            if uploader_id:
                 try:
-                    user_info = self.client.users_info(user=msg["user"])
+                    user_info = self.client.users_info(user=uploader_id)
+                    profile = user_info.get("user", {}).get("profile", {})
                     uploader_name = user_info.get("user", {}).get("name")
+                    uploader_full_name = user_info.get("user", {}).get("real_name") or profile.get("real_name")
+                    uploader_email = profile.get("email")
+                    uploader_profile_photo = profile.get("image_192")
                 except SlackApiError:
                     pass  # Skip if user lookup fails
-            
+
             # Use channel_id from parameter, fallback to message channel field
             photo_channel_id = channel_id or msg.get("channel", "")
-            
+
             photo = Photo(
                 id=msg["ts"],
                 url=file_url,
+                thumbnail_url=thumbnail_url,
                 channel_id=photo_channel_id,
                 timestamp=msg["ts"],
+                uploader_id=uploader_id,
                 uploader_name=uploader_name,
-                emoji_reactions=emoji_reactions,
+                uploader_full_name=uploader_full_name,
+                uploader_email=uploader_email,
+                uploader_profile_photo=uploader_profile_photo,
                 total_reactions=total_reactions,
                 media_type=media_type
             )
@@ -346,9 +370,8 @@ class SlackClient:
                 # Skip photos with 0 reactions
                 if total_reactions == 0:
                     continue
-                
+
                 # Update photo with fresh reactions
-                photo.emoji_reactions = emoji_reactions
                 photo.total_reactions = total_reactions
                 updated_photos.append(photo)
         
@@ -457,17 +480,20 @@ class SlackClient:
             
             # Get author name
             author_name = None
+            author_full_name = None
             if msg.get("user"):
                 try:
                     user_info = self.client.users_info(user=msg["user"])
                     author_name = user_info.get("user", {}).get("name")
+                    author_full_name = user_info.get("user", {}).get("real_name") or user_info.get("user", {}).get("profile", {}).get("real_name")
                 except SlackApiError:
                     pass  # Skip if user lookup fails
-            
+
             message = Message(
                 id=msg["ts"],
                 text=text,
                 author_name=author_name,
+                author_full_name=author_full_name,
                 channel_id=msg.get("channel", ""),
                 timestamp=msg["ts"],
                 emoji_reactions=emoji_reactions,
