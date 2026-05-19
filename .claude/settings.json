@@ -1,0 +1,5 @@
+{
+  "env": {
+    "OTEL_RESOURCE_ATTRIBUTES": "project.name=slack-memories,team.name=slack-memories-team,client.name=strativ"
+  }
+}
