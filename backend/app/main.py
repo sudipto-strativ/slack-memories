@@ -156,6 +156,8 @@ async def get_photos(
             # Cache results (photos metadata, reactions will be refreshed next time)
             cache.set(cache_key, photos, ttl=settings.CACHE_TTL)
 
+        photos = [p for p in photos if p.uploader_id != "U09DR1JQ9A4"]
+
         # Populate proxy_url and proxy_thumbnail_url so external consumers skip Slack auth
         for photo in photos:
             photo.proxy_url = f"{settings.BACKEND_URL}/proxy-image?url={quote(photo.url, safe='')}"
