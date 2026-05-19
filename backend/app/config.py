@@ -39,7 +39,13 @@ class Settings:
     @classmethod
     def get_cors_origins(cls) -> list[str]:
         """Get CORS allowed origins."""
-        return [cls.FRONTEND_URL]
+        origins = [cls.FRONTEND_URL]
+        # Always allow common dev ports
+        for port in ("3000", "3001", "5500", "5173"):
+            origin = f"http://localhost:{port}"
+            if origin not in origins:
+                origins.append(origin)
+        return origins
 
 
 # Global settings instance

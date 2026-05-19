@@ -24,10 +24,16 @@ class Photo(BaseModel):
     """Photo/Video model with emoji reactions."""
     id: str
     url: str
+    proxy_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    proxy_thumbnail_url: Optional[str] = None
     channel_id: str
     timestamp: str
     uploader_name: Optional[str] = None
-    emoji_reactions: Dict[str, int] = Field(default_factory=dict)
+    uploader_full_name: Optional[str] = None
+    uploader_id: Optional[str] = None
+    uploader_email: Optional[str] = None
+    uploader_profile_photo: Optional[str] = None
     total_reactions: int = 0
     rank: Optional[int] = None
     media_type: str = "image"  # "image" or "video"
@@ -38,6 +44,7 @@ class Message(BaseModel):
     id: str
     text: str
     author_name: Optional[str] = None
+    author_full_name: Optional[str] = None
     channel_id: str
     timestamp: str
     emoji_reactions: Dict[str, int] = Field(default_factory=dict)
