@@ -16,9 +16,12 @@ from .utils import (
 )
 
 
+SKIPPED_USERS = {"U0B4HJCCSF5"}
+
+
 class SlackClient:
     """Wrapper for Slack Web API client."""
-    
+
     def __init__(self):
         """Initialize Slack client with user token."""
         self.client = WebClient(token=settings.SLACK_USER_TOKEN)
@@ -161,13 +164,16 @@ class SlackClient:
         }
         
         for msg in messages:
+            if msg.get("user") in SKIPPED_USERS:
+                continue
+
             # Skip thread messages
             # if msg.get("thread_ts"):
             #     skipped_stats["thread_messages"] += 1
             #     if debug:
             #         print(f"DEBUG: Skipping thread message {msg.get('ts')}")
             #     continue
-            
+
             # Check for files in multiple locations
             files = msg.get("files", [])
             
@@ -451,10 +457,13 @@ class SlackClient:
         extracted_messages = []
         
         for msg in messages:
+            if msg.get("user") in SKIPPED_USERS:
+                continue
+
             # Skip thread messages
             if msg.get("thread_ts"):
                 continue
-            
+
             # Skip messages with files/attachments
             if msg.get("files") or msg.get("attachments"):
                 continue
