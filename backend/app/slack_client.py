@@ -1,6 +1,7 @@
 """Slack API client wrapper for the Slack Trophy backend."""
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import Iterable, List, Dict, Optional
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
@@ -25,7 +26,45 @@ class SlackClient:
     def __init__(self):
         """Initialize Slack client with user token."""
         self.client = WebClient(token=settings.SLACK_USER_TOKEN)
-    
+        self._user_info_cache: Dict[str, Dict] = {}
+
+    def _fetch_user_info(self, user_id: str) -> Dict:
+        """Fetch a single user's info from Slack, uncached."""
+        try:
+            return self.client.users_info(user=user_id).get("user", {})
+        except SlackApiError:
+            return {}
+
+    def _get_user_info(self, user_id: str) -> Dict:
+        """Fetch user info, caching results for the lifetime of the process.
+
+        Avoids re-fetching the same user via `users_info` on every photo/message
+        that references them, which was causing requests to time out on channels
+        with many reacted items.
+        """
+        if user_id in self._user_info_cache:
+            return self._user_info_cache[user_id]
+
+        user_info = self._fetch_user_info(user_id)
+        self._user_info_cache[user_id] = user_info
+        return user_info
+
+    def _prefetch_user_info(self, user_ids: Iterable[Optional[str]]) -> None:
+        """Warm the user info cache for a batch of users in parallel.
+
+        `users_info` is called once per unique uncached user, concurrently,
+        instead of sequentially per message, so a channel with many distinct
+        posters doesn't add up to a request that blows past the frontend's
+        30s timeout.
+        """
+        ids_to_fetch = list({uid for uid in user_ids if uid and uid not in self._user_info_cache})
+        if not ids_to_fetch:
+            return
+
+        with ThreadPoolExecutor(max_workers=min(10, len(ids_to_fetch))) as executor:
+            for uid, info in zip(ids_to_fetch, executor.map(self._fetch_user_info, ids_to_fetch)):
+                self._user_info_cache[uid] = info
+
     def get_channels(self) -> List[Channel]:
         """Fetch channels that match specific keywords.
         
@@ -153,6 +192,8 @@ class SlackClient:
         Returns:
             List of Photo objects (images and videos) sorted by total_reactions (descending)
         """
+        self._prefetch_user_info(msg.get("user") for msg in messages)
+
         photos = []
         skipped_stats = {
             "thread_messages": 0,
@@ -284,15 +325,12 @@ class SlackClient:
             uploader_email = None
             uploader_profile_photo = None
             if uploader_id:
-                try:
-                    user_info = self.client.users_info(user=uploader_id)
-                    profile = user_info.get("user", {}).get("profile", {})
-                    uploader_name = user_info.get("user", {}).get("name")
-                    uploader_full_name = user_info.get("user", {}).get("real_name") or profile.get("real_name")
-                    uploader_email = profile.get("email")
-                    uploader_profile_photo = profile.get("image_192")
-                except SlackApiError:
-                    pass  # Skip if user lookup fails
+                user_info = self._get_user_info(uploader_id)
+                profile = user_info.get("profile", {})
+                uploader_name = user_info.get("name")
+                uploader_full_name = user_info.get("real_name") or profile.get("real_name")
+                uploader_email = profile.get("email")
+                uploader_profile_photo = profile.get("image_192")
 
             # Use channel_id from parameter, fallback to message channel field
             photo_channel_id = channel_id or msg.get("channel", "")
@@ -454,8 +492,10 @@ class SlackClient:
         Returns:
             List of Message objects sorted by total_reactions (descending)
         """
+        self._prefetch_user_info(msg.get("user") for msg in messages)
+
         extracted_messages = []
-        
+
         for msg in messages:
             if msg.get("user") in SKIPPED_USERS:
                 continue
@@ -491,12 +531,9 @@ class SlackClient:
             author_name = None
             author_full_name = None
             if msg.get("user"):
-                try:
-                    user_info = self.client.users_info(user=msg["user"])
-                    author_name = user_info.get("user", {}).get("name")
-                    author_full_name = user_info.get("user", {}).get("real_name") or user_info.get("user", {}).get("profile", {}).get("real_name")
-                except SlackApiError:
-                    pass  # Skip if user lookup fails
+                user_info = self._get_user_info(msg["user"])
+                author_name = user_info.get("name")
+                author_full_name = user_info.get("real_name") or user_info.get("profile", {}).get("real_name")
 
             message = Message(
                 id=msg["ts"],
